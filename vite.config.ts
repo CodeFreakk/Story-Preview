@@ -17,6 +17,10 @@ function figmaAssetResolver() {
 }
 
 export default defineConfig({
+  build: {
+    // Vercel default / many dashboards expect "build", not Vite's "dist"
+    outDir: "build",
+  },
   plugins: [
     figmaAssetResolver(),
     // The React and Tailwind plugins are both required for Make, even if
