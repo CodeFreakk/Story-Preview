@@ -335,7 +335,7 @@ function UserInfoContainer() {
   return (
     <div className="content-stretch flex flex-col gap-px items-start relative shrink-0 w-[71.76px]" data-name="User Info Container">
       <UserInfoTop />
-      <p className="font-sans font-normal leading-[normal] not-italic relative shrink-0 text-[#626262] text-[11px] tracking-[0.0728px] whitespace-nowrap">Tokyo, Japan</p>
+      <p className="font-sans font-normal leading-[normal] not-italic relative shrink-0 text-[#626262] text-[12px] tracking-[0.0728px] whitespace-nowrap">Tokyo, Japan</p>
     </div>
   );
 }
