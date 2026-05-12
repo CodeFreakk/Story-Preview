@@ -1,7 +1,7 @@
 import { useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import svgPaths from "./svg-chh8fi0vxl";
-import { figmaHome } from "../../../../src/assets/figma";
+import { figmaHome } from "../../assets/figma";
 
 const imgInnerOval = figmaHome.innerOval;
 const imgInnerOval1 = figmaHome.innerOval1;
