@@ -525,7 +525,7 @@ function StoriesSection() {
 
 function TopSection() {
   return (
-    <div className="relative flex w-full max-w-[390px] flex-col content-stretch items-start shrink-0" data-name="Top Section">
+    <div className="relative flex w-full flex-col content-stretch items-start shrink-0" data-name="Top Section">
       <Header />
       <StoriesSection />
     </div>

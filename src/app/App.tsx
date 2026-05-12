@@ -5,8 +5,8 @@ import StoryScreen from "./StoryScreen";
 
 function PhoneFrame({ children }: { children: ReactNode }) {
   return (
-    <div className="box-border flex min-h-dvh items-center justify-center bg-gray-100 p-4 [-webkit-tap-highlight-color:transparent]">
-      <div className="relative flex h-[min(844px,100dvh)] w-[390px] max-w-full min-h-0 flex-col overflow-hidden bg-white shadow-2xl [-webkit-tap-highlight-color:transparent] touch-manipulation">
+    <div className="box-border flex min-h-dvh w-full flex-col bg-white [-webkit-tap-highlight-color:transparent] md:items-center md:justify-center md:bg-gray-100 md:p-4">
+      <div className="relative flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-white [-webkit-tap-highlight-color:transparent] touch-manipulation md:h-[min(844px,100dvh)] md:w-[390px] md:max-w-full md:flex-none md:shadow-2xl">
         {children}
       </div>
     </div>
