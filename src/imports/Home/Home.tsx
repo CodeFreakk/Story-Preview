@@ -525,7 +525,7 @@ function StoriesSection() {
 
 function TopSection() {
   return (
-    <div className="-translate-x-1/2 absolute content-stretch flex flex-col items-start left-1/2 top-0 w-[390px]" data-name="Top Section">
+    <div className="relative flex w-full max-w-[390px] flex-col content-stretch items-start shrink-0" data-name="Top Section">
       <Header />
       <StoriesSection />
     </div>
@@ -608,8 +608,10 @@ function BottomNavContainer() {
 
 function BottomNav() {
   return (
-    <div className="-translate-x-1/2 absolute bg-white bottom-[0.26px] content-stretch flex flex-col items-center justify-center left-1/2 pb-[44px] pt-[20px] px-[32px] w-[390px]" data-name="Bottom Nav">
-      <div aria-hidden="true" className="absolute border-[#ececec] border-solid border-t inset-0 pointer-events-none" />
+    <div
+      className="relative z-10 flex w-full shrink-0 flex-col content-stretch items-center justify-center border-t border-solid border-[#ececec] bg-white pt-[20px] pb-[44px] px-[32px]"
+      data-name="Bottom Nav"
+    >
       <BottomNavContainer />
     </div>
   );
@@ -617,8 +619,10 @@ function BottomNav() {
 
 export default function Home() {
   return (
-    <div className="bg-white relative size-full" data-name="home">
-      <TopSection />
+    <div className="relative flex min-h-0 w-full flex-1 flex-col bg-white" data-name="home">
+      <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain">
+        <TopSection />
+      </div>
       <BottomNav />
     </div>
   );

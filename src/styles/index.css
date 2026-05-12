@@ -1,3 +1,8 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
+
+/* Mobile: no grey flash / highlight on tap-and-hold (esp. around the phone frame). */
+html {
+  -webkit-tap-highlight-color: transparent;
+}

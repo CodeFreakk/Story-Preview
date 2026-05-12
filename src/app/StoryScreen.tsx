@@ -632,7 +632,7 @@ export default function StoryScreen() {
   const onMessagePointerDown = useCallback(() => {}, []);
 
   return (
-    <div className="size-full min-h-0 bg-black">
+    <div className="flex min-h-0 w-full flex-1 flex-col bg-black">
       <InstagramStory
         slides={slides}
         currentSlideIndex={slideIndex}
