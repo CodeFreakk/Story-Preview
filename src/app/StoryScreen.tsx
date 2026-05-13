@@ -23,7 +23,7 @@ import {
 
 const SLIDE_DURATION_MS = 5000;
 /** Video-only: show preview / scrub chip after holding this long (ms). */
-const VIDEO_HOLD_PREVIEW_MS = 500;
+const VIDEO_HOLD_PREVIEW_MS = 350;
 /** Swipe down anywhere on story to close (min vertical travel, px). */
 const STORY_SWIPE_DISMISS_MIN_DY_PX = 70;
 /** Treat release as a tap (vs hold-to-pause) if short and barely moved. */
@@ -176,6 +176,8 @@ export default function StoryScreen() {
   } | null>(null);
   const storyPointerDownRef = useRef(false);
   const videoPreviewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** After hold delay: seek + preview activate together; until then video does not scrub on move. */
+  const videoHoldPreviewActiveRef = useRef(false);
   const seekCenterXRef = useRef(0);
   const storyGestureRootRef = useRef<HTMLDivElement>(null);
   /** Tracks pointer for swipe-down-to-dismiss (anywhere on story). */
@@ -280,6 +282,7 @@ export default function StoryScreen() {
     }
     setTooltip((t) => ({ ...t, visible: false, previewUrl: null }));
     videoHoldOriginRef.current = null;
+    videoHoldPreviewActiveRef.current = false;
     cancelHaptic();
     swipeDismissDragRef.current = null;
   }, [storyId]);
@@ -291,6 +294,7 @@ export default function StoryScreen() {
       videoPreviewTimerRef.current = null;
     }
     videoHoldOriginRef.current = null;
+    videoHoldPreviewActiveRef.current = false;
     cancelHaptic();
     swipeDismissDragRef.current = null;
     setScrubPreviewProgress(slideProgressRef.current);
@@ -386,6 +390,7 @@ export default function StoryScreen() {
     }
     setTooltip((t) => ({ ...t, visible: false, previewUrl: null }));
     videoHoldOriginRef.current = null;
+    videoHoldPreviewActiveRef.current = false;
     cancelHaptic();
     const i = slideIndexRef.current;
     const len = slidesLengthRef.current;
@@ -411,6 +416,7 @@ export default function StoryScreen() {
     }
     setTooltip((t) => ({ ...t, visible: false, previewUrl: null }));
     videoHoldOriginRef.current = null;
+    videoHoldPreviewActiveRef.current = false;
     cancelHaptic();
     const i = slideIndexRef.current;
     if (i > 0) {
@@ -490,6 +496,7 @@ export default function StoryScreen() {
       primeHapticFromUserGesture();
       storyPointerDownRef.current = true;
       videoHoldOriginRef.current = null;
+      videoHoldPreviewActiveRef.current = false;
 
       const idx = slideIndexRef.current;
       const outer = timelineOuterRef.current;
@@ -503,9 +510,6 @@ export default function StoryScreen() {
           slidesLengthRef.current,
           STORY_VIDEO_PREVIEW_FRAME_WIDTH_PX,
         );
-        if (slidesRef.current[idx]?.type === "video") {
-          seekStoryVideoToClientX(e.clientX, idx);
-        }
       }
 
       touchStartRef.current = {
@@ -538,6 +542,7 @@ export default function StoryScreen() {
           const outer = timelineOuterRef.current;
           const inner = timelineRef.current;
           if (!outer || !inner) return;
+          videoHoldPreviewActiveRef.current = true;
           seekStoryVideoToClientX(
             lastScrubClientXRef.current,
             origin.slideIndex,
@@ -574,10 +579,14 @@ export default function StoryScreen() {
         return;
       }
 
+      lastScrubClientXRef.current = e.clientX;
+      if (!videoHoldPreviewActiveRef.current) {
+        return;
+      }
+
       const outer = timelineOuterRef.current;
       const inner = timelineRef.current;
       if (!outer || !inner) return;
-      lastScrubClientXRef.current = e.clientX;
       seekStoryVideoToClientX(e.clientX, origin.slideIndex);
       const x = previewCenterFromClientX(
         e.clientX,
@@ -600,6 +609,7 @@ export default function StoryScreen() {
       cancelHaptic();
       storyPointerDownRef.current = false;
       videoHoldOriginRef.current = null;
+      videoHoldPreviewActiveRef.current = false;
       if (videoPreviewTimerRef.current != null) {
         clearTimeout(videoPreviewTimerRef.current);
         videoPreviewTimerRef.current = null;
