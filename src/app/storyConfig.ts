@@ -29,8 +29,8 @@ export const STORY_SLIDES: Record<string, StoryMediaSlide[]> = {
     { type: "image", src: "/images/tokyoPost.png" },
   ],
   selena: [
-    { type: "image", src: "/images/selena.png" },
-    { type: "image", src: "/images/tokyoPost.png" },
+    { type: "video", src: "/videos/selena_story_video1.mp4" },
+    { type: "video", src: "/videos/selena_story_video2.mp4" },
   ],
 };
 

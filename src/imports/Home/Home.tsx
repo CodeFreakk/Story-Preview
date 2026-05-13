@@ -287,7 +287,7 @@ function Story2() {
 
 function Stories() {
   return (
-    <div className="overflow-x-auto w-full" style={{ scrollbarWidth: "none" }} data-name="Stories">
+    <div className="min-w-0 w-full overflow-x-auto" style={{ scrollbarWidth: "none" }} data-name="Stories">
       <div className="content-stretch flex gap-[22.291px] items-center leading-[0] pb-[3px] pt-[3px] relative" style={{ width: "max-content" }}>
         <YourStory />
         <Live />
@@ -301,9 +301,9 @@ function Stories() {
 
 function StoriesContainer() {
   return (
-    <div className="bg-white relative shrink-0 w-full" data-name="Stories Container">
+    <div className="bg-white relative shrink-0 w-full min-w-0" data-name="Stories Container">
       <div aria-hidden="true" className="absolute border-[#f7f7f7] border-b border-solid inset-0 pointer-events-none" />
-      <div className="content-stretch flex flex-col items-start pb-[14px] pt-[10px] px-[16px] relative size-full">
+      <div className="content-stretch flex min-w-0 w-full flex-col items-start pb-[14px] pt-[10px] px-[16px] relative">
         <Stories />
       </div>
     </div>
@@ -516,7 +516,7 @@ function PostSection() {
 
 function StoriesSection() {
   return (
-    <div className="content-stretch flex flex-col items-start relative shrink-0 w-full" data-name="Stories Section">
+    <div className="content-stretch flex min-w-0 w-full flex-col items-start relative shrink-0" data-name="Stories Section">
       <StoriesContainer />
       <PostSection />
     </div>
@@ -525,7 +525,7 @@ function StoriesSection() {
 
 function TopSection() {
   return (
-    <div className="relative flex w-full flex-col content-stretch items-start shrink-0" data-name="Top Section">
+    <div className="relative flex min-w-0 w-full shrink-0 flex-col content-stretch items-start" data-name="Top Section">
       <Header />
       <StoriesSection />
     </div>
@@ -621,7 +621,7 @@ export default function Home() {
   return (
     <div className="relative flex min-h-0 w-full flex-1 flex-col bg-white" data-name="home">
       {/* Reserve space for fixed BottomNav on mobile (nav ~90px + safe area); md uses in-flow nav */}
-      <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain pb-[calc(96px+env(safe-area-inset-bottom,0px))] md:pb-0">
+      <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain pb-[calc(96px+env(safe-area-inset-bottom,0px))] md:pb-0">
         <TopSection />
       </div>
       <BottomNav />
