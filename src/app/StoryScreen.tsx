@@ -14,6 +14,7 @@ import InstagramStory, {
   type StoryTooltipState,
 } from "../imports/InstagramStory/InstagramStory";
 import { extractVideoPreviewFrames } from "../lib/extractVideoPreviewFrames";
+import { cancelHaptic, triggerHoldPreviewHaptic } from "../lib/haptics";
 import {
   STORY_AVATAR,
   STORY_DISPLAY,
@@ -271,6 +272,7 @@ export default function StoryScreen() {
     }
     setTooltip((t) => ({ ...t, visible: false, previewUrl: null }));
     videoHoldOriginRef.current = null;
+    cancelHaptic();
   }, [storyId]);
 
   useEffect(() => {
@@ -280,6 +282,7 @@ export default function StoryScreen() {
       videoPreviewTimerRef.current = null;
     }
     videoHoldOriginRef.current = null;
+    cancelHaptic();
     setScrubPreviewProgress(slideProgressRef.current);
   }, [slideIndex]);
 
@@ -332,6 +335,7 @@ export default function StoryScreen() {
   const onClosePointerDown = useCallback(() => {}, []);
 
   const onClosePointerUp = useCallback(() => {
+    cancelHaptic();
     navigate("/");
   }, [navigate]);
 
@@ -352,6 +356,7 @@ export default function StoryScreen() {
     }
     setTooltip((t) => ({ ...t, visible: false, previewUrl: null }));
     videoHoldOriginRef.current = null;
+    cancelHaptic();
     const i = slideIndexRef.current;
     const len = slidesLengthRef.current;
     if (i + 1 >= len) {
@@ -376,6 +381,7 @@ export default function StoryScreen() {
     }
     setTooltip((t) => ({ ...t, visible: false, previewUrl: null }));
     videoHoldOriginRef.current = null;
+    cancelHaptic();
     const i = slideIndexRef.current;
     if (i > 0) {
       slideIndexRef.current = i - 1;
@@ -450,6 +456,7 @@ export default function StoryScreen() {
   const onTouchLayerPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       lastScrubClientXRef.current = e.clientX;
+      cancelHaptic();
       storyPointerDownRef.current = true;
       videoHoldOriginRef.current = null;
 
@@ -496,6 +503,7 @@ export default function StoryScreen() {
           if (slidesRef.current[slideIndexRef.current]?.type !== "video") {
             return;
           }
+          triggerHoldPreviewHaptic();
           const outer = timelineOuterRef.current;
           const inner = timelineRef.current;
           if (!outer || !inner) return;
@@ -558,6 +566,7 @@ export default function StoryScreen() {
 
   const onTouchLayerPointerUp = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
+      cancelHaptic();
       storyPointerDownRef.current = false;
       videoHoldOriginRef.current = null;
       if (videoPreviewTimerRef.current != null) {
