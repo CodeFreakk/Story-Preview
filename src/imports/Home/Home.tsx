@@ -609,7 +609,7 @@ function BottomNavContainer() {
 function BottomNav() {
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-30 flex w-full shrink-0 flex-col content-stretch items-center justify-center border-t border-solid border-[#ececec] bg-white pt-[20px] pb-[max(44px,env(safe-area-inset-bottom,0px))] px-[32px] md:relative md:bottom-auto md:left-auto md:right-auto md:z-10 md:pb-[44px]"
+      className="fixed bottom-0 left-0 right-0 z-30 flex w-full shrink-0 flex-col content-stretch items-center justify-center border-t border-solid border-[#ececec] bg-white pt-[20px] pb-[max(28px,env(safe-area-inset-bottom,0px))] px-[32px] md:relative md:bottom-auto md:left-auto md:right-auto md:z-10 md:pb-[44px]"
       data-name="Bottom Nav"
     >
       <BottomNavContainer />
