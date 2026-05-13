@@ -294,6 +294,7 @@ function Story(p: InstagramStoryViewProps) {
               key={src}
               className="absolute max-w-none object-cover select-none rounded-[18px] size-full [-webkit-touch-callout:none]"
               src={src}
+              preload="auto"
               muted
               playsInline
               disablePictureInPicture

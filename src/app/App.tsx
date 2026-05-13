@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
+import { useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router";
 import Home from "../imports/Home/Home";
 import StoryScreen from "./StoryScreen";
+import { getStoryPrefetchAssetUrls } from "./storyConfig";
 
 function PhoneFrame({ children }: { children: ReactNode }) {
   return (
@@ -14,6 +16,30 @@ function PhoneFrame({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
+  useEffect(() => {
+    const { videoUrls, imageUrls } = getStoryPrefetchAssetUrls();
+    const links: HTMLLinkElement[] = [];
+    const append = (rel: string, as: string, href: string) => {
+      const link = document.createElement("link");
+      link.rel = rel;
+      link.as = as;
+      link.href = href;
+      document.head.appendChild(link);
+      links.push(link);
+    };
+    for (const href of videoUrls) {
+      append("preload", "video", href);
+    }
+    for (const href of imageUrls) {
+      append("preload", "image", href);
+    }
+    return () => {
+      for (const link of links) {
+        link.remove();
+      }
+    };
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>

@@ -11,44 +11,14 @@ import { useNavigate, useParams } from "react-router";
 import InstagramStory, {
   STORY_VIDEO_PREVIEW_FRAME_HEIGHT_PX,
   STORY_VIDEO_PREVIEW_FRAME_WIDTH_PX,
-  type StoryMediaSlide,
   type StoryTooltipState,
 } from "../imports/InstagramStory/InstagramStory";
 import { extractVideoPreviewFrames } from "../lib/extractVideoPreviewFrames";
-
-const STORY_DISPLAY: Record<string, string> = {
-  colegreen: "colegreen",
-  rodek: "rodek",
-  macronbi: "macronbi",
-  selena: "selena",
-};
-
-const STORY_AVATAR: Record<string, string> = {
-  colegreen: "/images/colegreen.png",
-  rodek: "/images/rodek.png",
-  macronbi: "/images/macronbi.png",
-  selena: "/images/selena.png",
-};
-
-/** Per-user story slides: profile shot then post (same pattern as Instagram photo stories). */
-const STORY_SLIDES: Record<string, StoryMediaSlide[]> = {
-  colegreen: [
-    { type: "image", src: "/images/colegreen.png" },
-    { type: "image", src: "/images/tokyoPost.png" },
-  ],
-  rodek: [
-    { type: "video", src: "/videos/rodek_story_video1.mp4" },
-    { type: "image", src: "/images/rodek_story_image2.jpg" },
-  ],
-  macronbi: [
-    { type: "image", src: "/images/macronbi.png" },
-    { type: "image", src: "/images/tokyoPost.png" },
-  ],
-  selena: [
-    { type: "image", src: "/images/selena.png" },
-    { type: "image", src: "/images/tokyoPost.png" },
-  ],
-};
+import {
+  STORY_AVATAR,
+  STORY_DISPLAY,
+  slidesForStory,
+} from "./storyConfig";
 
 const SLIDE_DURATION_MS = 5000;
 /** Video-only: show preview chip after holding this long (ms). */
@@ -150,14 +120,6 @@ function getVideoScrubRatioFromClientX(
   const span = right - left;
   if (span <= 0) return 0;
   return Math.min(1, Math.max(0, (x - left) / span));
-}
-
-function slidesForStory(storyId: string | undefined, fallbackAvatar: string): StoryMediaSlide[] {
-  if (storyId && STORY_SLIDES[storyId]) return STORY_SLIDES[storyId];
-  return [
-    { type: "image", src: fallbackAvatar },
-    { type: "image", src: "/images/tokyoPost.png" },
-  ];
 }
 
 export default function StoryScreen() {
