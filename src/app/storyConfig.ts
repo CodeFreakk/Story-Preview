@@ -14,20 +14,14 @@ export const STORY_AVATAR: Record<string, string> = {
   selena: "/images/selena.png",
 };
 
-/** Per-user story slides: profile shot then post (same pattern as Instagram photo stories). */
+/** Per-user story slides (image and/or video). */
 export const STORY_SLIDES: Record<string, StoryMediaSlide[]> = {
-  colegreen: [
-    { type: "image", src: "/images/colegreen.png" },
-    { type: "image", src: "/images/tokyoPost.png" },
-  ],
+  colegreen: [{ type: "image", src: "/images/colegreen_story.jpg" }],
   rodek: [
     { type: "video", src: "/videos/rodek_story_video720p.mp4" },
     { type: "image", src: "/images/rodek_story_image2.jpg" },
   ],
-  macronbi: [
-    { type: "image", src: "/images/macronbi.png" },
-    { type: "image", src: "/images/tokyoPost.png" },
-  ],
+  macronbi: [{ type: "image", src: "/images/macronbi_story.jpg" }],
   selena: [
     { type: "video", src: "/videos/selena_story_video1.mp4" },
     { type: "video", src: "/videos/selena_story_video2.mp4" },

@@ -14,7 +14,7 @@ import InstagramStory, {
   type StoryTooltipState,
 } from "../imports/InstagramStory/InstagramStory";
 import { extractVideoPreviewFrames } from "../lib/extractVideoPreviewFrames";
-import { cancelHaptic, triggerHoldPreviewHaptic } from "../lib/haptics";
+import { armHoldSeekFeedback, cancelHaptic, primeHapticFromUserGesture } from "../lib/haptics";
 import {
   STORY_AVATAR,
   STORY_DISPLAY,
@@ -24,6 +24,8 @@ import {
 const SLIDE_DURATION_MS = 5000;
 /** Video-only: show preview chip after holding this long (ms). */
 const VIDEO_HOLD_PREVIEW_MS = 120;
+/** Swipe down from top band to close story (min vertical travel, px). */
+const STORY_TOP_DISMISS_MIN_DY_PX = 60;
 /** Treat release as a tap (vs hold-to-pause) if short and barely moved. */
 const TAP_MAX_DURATION_MS = 320;
 const TAP_MAX_MOVE_PX = 14;
@@ -176,6 +178,12 @@ export default function StoryScreen() {
   const videoPreviewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const seekCenterXRef = useRef(0);
   const storyGestureRootRef = useRef<HTMLDivElement>(null);
+  /** Pointer started in top dismiss band — swipe down closes story. */
+  const topDismissDragRef = useRef<{
+    pointerId: number;
+    x0: number;
+    y0: number;
+  } | null>(null);
 
   /** Kill native long-press selection / image-drag chrome (Chrome + Safari on mobile). */
   useLayoutEffect(() => {
@@ -273,6 +281,7 @@ export default function StoryScreen() {
     setTooltip((t) => ({ ...t, visible: false, previewUrl: null }));
     videoHoldOriginRef.current = null;
     cancelHaptic();
+    topDismissDragRef.current = null;
   }, [storyId]);
 
   useEffect(() => {
@@ -283,6 +292,7 @@ export default function StoryScreen() {
     }
     videoHoldOriginRef.current = null;
     cancelHaptic();
+    topDismissDragRef.current = null;
     setScrubPreviewProgress(slideProgressRef.current);
   }, [slideIndex]);
 
@@ -291,10 +301,30 @@ export default function StoryScreen() {
     const tick = () => {
       if (!pausedRef.current) {
         const i = slideIndexRef.current;
-        const slideDurationMs =
-          slideDurationMsRef.current[i] ?? SLIDE_DURATION_MS;
-        const elapsed = performance.now() - slideStartRef.current;
-        const p = Math.min(1, elapsed / slideDurationMs);
+        const slide = slidesRef.current[i];
+        let p: number;
+
+        if (slide?.type === "video") {
+          const video = storyVideoRef.current;
+          const durMs = slideDurationMsRef.current[i];
+          const durS = durMs != null ? durMs / 1000 : 0;
+          const canCountProgress =
+            durMs != null &&
+            durS > 0 &&
+            video != null &&
+            video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA &&
+            (!video.paused || video.ended);
+          if (!canCountProgress) {
+            p = 0;
+          } else {
+            p = Math.min(1, Math.max(0, video.currentTime / durS));
+          }
+        } else {
+          const slideDurationMs =
+            slideDurationMsRef.current[i] ?? SLIDE_DURATION_MS;
+          const elapsed = performance.now() - slideStartRef.current;
+          p = Math.min(1, elapsed / slideDurationMs);
+        }
 
         if (p >= 1) {
           setSlideProgress(1);
@@ -457,6 +487,7 @@ export default function StoryScreen() {
     (e: ReactPointerEvent<HTMLDivElement>) => {
       lastScrubClientXRef.current = e.clientX;
       cancelHaptic();
+      primeHapticFromUserGesture();
       storyPointerDownRef.current = true;
       videoHoldOriginRef.current = null;
 
@@ -490,7 +521,7 @@ export default function StoryScreen() {
           routeStoryId: routeStoryIdRef.current,
           slideIndex: idx,
         };
-        triggerHoldPreviewHaptic();
+        armHoldSeekFeedback(VIDEO_HOLD_PREVIEW_MS);
         if (videoPreviewTimerRef.current != null) {
           clearTimeout(videoPreviewTimerRef.current);
         }
@@ -622,12 +653,73 @@ export default function StoryScreen() {
 
   const onMessagePointerDown = useCallback(() => {}, []);
 
+  const onTopDismissPointerDown = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (e.button !== 0) return;
+      topDismissDragRef.current = {
+        pointerId: e.pointerId,
+        x0: e.clientX,
+        y0: e.clientY,
+      };
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
+    },
+    [],
+  );
+
+  const onTopDismissPointerMove = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      const s = topDismissDragRef.current;
+      if (!s || s.pointerId !== e.pointerId) return;
+      const dy = e.clientY - s.y0;
+      if (dy > 16 && e.cancelable) {
+        e.preventDefault();
+      }
+    },
+    [],
+  );
+
+  const onTopDismissPointerUpOrCancel = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      const s = topDismissDragRef.current;
+      topDismissDragRef.current = null;
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
+      if (!s || s.pointerId !== e.pointerId) return;
+      const dy = e.clientY - s.y0;
+      if (dy >= STORY_TOP_DISMISS_MIN_DY_PX) {
+        cancelHaptic();
+        navigate("/");
+      }
+    },
+    [navigate],
+  );
+
   return (
     <div
       ref={storyGestureRootRef}
-      className="flex min-h-0 w-full flex-1 flex-col overscroll-none bg-black"
+      className="relative flex min-h-0 w-full flex-1 flex-col overscroll-none bg-black"
       data-story-gesture-root
     >
+      {/* Swipe down ≥60px from anywhere along the top band to close. */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 z-[50] w-full touch-none"
+        data-story-top-dismiss-strip
+        style={{
+          height: "calc(env(safe-area-inset-top, 0px) + 96px)",
+        }}
+        onPointerDown={onTopDismissPointerDown}
+        onPointerMove={onTopDismissPointerMove}
+        onPointerUp={onTopDismissPointerUpOrCancel}
+        onPointerCancel={onTopDismissPointerUpOrCancel}
+      />
       <InstagramStory
         slides={slides}
         currentSlideIndex={slideIndex}
