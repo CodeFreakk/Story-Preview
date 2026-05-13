@@ -21,7 +21,7 @@ export const STORY_SLIDES: Record<string, StoryMediaSlide[]> = {
     { type: "image", src: "/images/tokyoPost.png" },
   ],
   rodek: [
-    { type: "video", src: "/videos/rodek_story_video1.mp4" },
+    { type: "video", src: "/videos/rodek_story_video720p.mp4" },
     { type: "image", src: "/images/rodek_story_image2.jpg" },
   ],
   macronbi: [

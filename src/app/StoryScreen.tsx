@@ -490,6 +490,7 @@ export default function StoryScreen() {
           routeStoryId: routeStoryIdRef.current,
           slideIndex: idx,
         };
+        triggerHoldPreviewHaptic();
         if (videoPreviewTimerRef.current != null) {
           clearTimeout(videoPreviewTimerRef.current);
         }
@@ -503,7 +504,6 @@ export default function StoryScreen() {
           if (slidesRef.current[slideIndexRef.current]?.type !== "video") {
             return;
           }
-          triggerHoldPreviewHaptic();
           const outer = timelineOuterRef.current;
           const inner = timelineRef.current;
           if (!outer || !inner) return;
