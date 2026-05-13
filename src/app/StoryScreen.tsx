@@ -22,10 +22,10 @@ import {
 } from "./storyConfig";
 
 const SLIDE_DURATION_MS = 5000;
-/** Video-only: show preview chip after holding this long (ms). */
-const VIDEO_HOLD_PREVIEW_MS = 120;
-/** Swipe down from top band to close story (min vertical travel, px). */
-const STORY_TOP_DISMISS_MIN_DY_PX = 60;
+/** Video-only: show preview / scrub chip after holding this long (ms). */
+const VIDEO_HOLD_PREVIEW_MS = 500;
+/** Swipe down anywhere on story to close (min vertical travel, px). */
+const STORY_SWIPE_DISMISS_MIN_DY_PX = 70;
 /** Treat release as a tap (vs hold-to-pause) if short and barely moved. */
 const TAP_MAX_DURATION_MS = 320;
 const TAP_MAX_MOVE_PX = 14;
@@ -178,8 +178,8 @@ export default function StoryScreen() {
   const videoPreviewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const seekCenterXRef = useRef(0);
   const storyGestureRootRef = useRef<HTMLDivElement>(null);
-  /** Pointer started in top dismiss band — swipe down closes story. */
-  const topDismissDragRef = useRef<{
+  /** Tracks pointer for swipe-down-to-dismiss (anywhere on story). */
+  const swipeDismissDragRef = useRef<{
     pointerId: number;
     x0: number;
     y0: number;
@@ -281,7 +281,7 @@ export default function StoryScreen() {
     setTooltip((t) => ({ ...t, visible: false, previewUrl: null }));
     videoHoldOriginRef.current = null;
     cancelHaptic();
-    topDismissDragRef.current = null;
+    swipeDismissDragRef.current = null;
   }, [storyId]);
 
   useEffect(() => {
@@ -292,7 +292,7 @@ export default function StoryScreen() {
     }
     videoHoldOriginRef.current = null;
     cancelHaptic();
-    topDismissDragRef.current = null;
+    swipeDismissDragRef.current = null;
     setScrubPreviewProgress(slideProgressRef.current);
   }, [slideIndex]);
 
@@ -653,47 +653,22 @@ export default function StoryScreen() {
 
   const onMessagePointerDown = useCallback(() => {}, []);
 
-  const onTopDismissPointerDown = useCallback(
-    (e: ReactPointerEvent<HTMLDivElement>) => {
-      if (e.button !== 0) return;
-      topDismissDragRef.current = {
-        pointerId: e.pointerId,
-        x0: e.clientX,
-        y0: e.clientY,
-      };
-      try {
-        e.currentTarget.setPointerCapture(e.pointerId);
-      } catch {
-        /* ignore */
-      }
-    },
-    [],
-  );
+  const onSwipeDismissPointerDown = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    swipeDismissDragRef.current = {
+      pointerId: e.pointerId,
+      x0: e.clientX,
+      y0: e.clientY,
+    };
+  }, []);
 
-  const onTopDismissPointerMove = useCallback(
+  const onSwipeDismissPointerUpOrCancel = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
-      const s = topDismissDragRef.current;
+      const s = swipeDismissDragRef.current;
+      swipeDismissDragRef.current = null;
       if (!s || s.pointerId !== e.pointerId) return;
       const dy = e.clientY - s.y0;
-      if (dy > 16 && e.cancelable) {
-        e.preventDefault();
-      }
-    },
-    [],
-  );
-
-  const onTopDismissPointerUpOrCancel = useCallback(
-    (e: ReactPointerEvent<HTMLDivElement>) => {
-      const s = topDismissDragRef.current;
-      topDismissDragRef.current = null;
-      try {
-        e.currentTarget.releasePointerCapture(e.pointerId);
-      } catch {
-        /* ignore */
-      }
-      if (!s || s.pointerId !== e.pointerId) return;
-      const dy = e.clientY - s.y0;
-      if (dy >= STORY_TOP_DISMISS_MIN_DY_PX) {
+      if (dy >= STORY_SWIPE_DISMISS_MIN_DY_PX) {
         cancelHaptic();
         navigate("/");
       }
@@ -706,20 +681,10 @@ export default function StoryScreen() {
       ref={storyGestureRootRef}
       className="relative flex min-h-0 w-full flex-1 flex-col overscroll-none bg-black"
       data-story-gesture-root
+      onPointerDown={onSwipeDismissPointerDown}
+      onPointerUp={onSwipeDismissPointerUpOrCancel}
+      onPointerCancel={onSwipeDismissPointerUpOrCancel}
     >
-      {/* Swipe down ≥60px from anywhere along the top band to close. */}
-      <div
-        aria-hidden
-        className="absolute inset-x-0 top-0 z-[50] w-full touch-none"
-        data-story-top-dismiss-strip
-        style={{
-          height: "calc(env(safe-area-inset-top, 0px) + 96px)",
-        }}
-        onPointerDown={onTopDismissPointerDown}
-        onPointerMove={onTopDismissPointerMove}
-        onPointerUp={onTopDismissPointerUpOrCancel}
-        onPointerCancel={onTopDismissPointerUpOrCancel}
-      />
       <InstagramStory
         slides={slides}
         currentSlideIndex={slideIndex}
