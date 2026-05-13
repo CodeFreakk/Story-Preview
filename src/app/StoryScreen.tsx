@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -211,6 +212,25 @@ export default function StoryScreen() {
   const storyPointerDownRef = useRef(false);
   const videoPreviewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const seekCenterXRef = useRef(0);
+  const storyGestureRootRef = useRef<HTMLDivElement>(null);
+
+  /** Kill native long-press selection / image-drag chrome (Chrome + Safari on mobile). */
+  useLayoutEffect(() => {
+    const root = storyGestureRootRef.current;
+    if (!root) return;
+    const opts: AddEventListenerOptions = { capture: true };
+    const stopIfInsideStory = (e: Event) => {
+      const t = e.target;
+      if (!(t instanceof Node) || !root.contains(t)) return;
+      e.preventDefault();
+    };
+    document.addEventListener("selectstart", stopIfInsideStory, opts);
+    document.addEventListener("dragstart", stopIfInsideStory, opts);
+    return () => {
+      document.removeEventListener("selectstart", stopIfInsideStory, opts);
+      document.removeEventListener("dragstart", stopIfInsideStory, opts);
+    };
+  }, []);
 
   useEffect(() => {
     slideIndexRef.current = slideIndex;
@@ -632,7 +652,11 @@ export default function StoryScreen() {
   const onMessagePointerDown = useCallback(() => {}, []);
 
   return (
-    <div className="flex min-h-0 w-full flex-1 flex-col bg-black">
+    <div
+      ref={storyGestureRootRef}
+      className="flex min-h-0 w-full flex-1 flex-col overscroll-none bg-black"
+      data-story-gesture-root
+    >
       <InstagramStory
         slides={slides}
         currentSlideIndex={slideIndex}

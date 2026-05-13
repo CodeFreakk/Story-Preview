@@ -116,7 +116,8 @@ function UserDetails({
       <div className="relative shrink-0 size-[33.28px]" data-name="User Picture 1">
         <img
           alt=""
-          className="absolute block inset-0 max-w-none size-full"
+          draggable={false}
+          className="absolute block inset-0 max-w-none size-full [-webkit-touch-callout:none] [-webkit-user-drag:none]"
           height="33.28"
           src={avatarSrc}
           width="33.28"
@@ -192,7 +193,7 @@ function UserInfo(p: InstagramStoryViewProps) {
   const { slides, currentSlideIndex, slideProgress } = p
   return (
     <div
-      className="absolute z-[4] flex min-h-0 w-[372.84px] flex-col content-stretch items-center gap-[8px] left-[8.32px] top-[8.78px] h-[63.892px]"
+      className="absolute z-[4] flex min-h-0 w-[372.84px] flex-col content-stretch items-center gap-[8px] left-[8.32px] top-[8.78px] h-[63.892px] select-none [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none]"
       data-name="User Info"
     >
       <div
@@ -206,17 +207,18 @@ function UserInfo(p: InstagramStoryViewProps) {
         >
           <div
             ref={p.timelineRef}
-            className="content-stretch flex gap-[1.96px] items-start p-[7.839px] relative size-full"
-          onPointerDown={(e) => {
-            if (e.currentTarget instanceof HTMLElement) {
-              try {
-                e.currentTarget.setPointerCapture(e.pointerId);
-              } catch {
-                /* ignore */
+            className="content-stretch flex gap-[1.96px] items-start p-[7.839px] relative size-full touch-manipulation [-webkit-tap-highlight-color:transparent]"
+            onContextMenu={(e) => e.preventDefault()}
+            onPointerDown={(e) => {
+              if (e.currentTarget instanceof HTMLElement) {
+                try {
+                  e.currentTarget.setPointerCapture(e.pointerId)
+                } catch {
+                  /* ignore */
+                }
               }
-            }
-            p.timelinePointerDown(e);
-          }}
+              p.timelinePointerDown(e)
+            }}
           onPointerUp={p.timelinePointerUp}
           onPointerCancel={p.timelinePointerUp}
         >
@@ -259,6 +261,17 @@ function Story(p: InstagramStoryViewProps) {
   const slide = p.slides[p.currentSlideIndex]
   const src = slide?.src ?? ''
   const isVideo = slide?.type === 'video'
+  const touchLayerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = touchLayerRef.current
+    if (!el) return
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 1) e.preventDefault()
+    }
+    el.addEventListener('touchstart', onTouchStart, { passive: false })
+    return () => el.removeEventListener('touchstart', onTouchStart)
+  }, [])
 
   useEffect(() => {
     if (!isVideo) return
@@ -271,18 +284,20 @@ function Story(p: InstagramStoryViewProps) {
   return (
     <div className="absolute contents left-0 top-[-0.24px]" data-name="Story">
       <div
-        className="absolute z-0 h-[752.238px] left-0 rounded-[18px] top-[-0.24px] w-[390px]"
+        className="absolute z-0 h-[752.238px] left-0 select-none rounded-[18px] top-[-0.24px] w-[390px] [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [-webkit-user-select:none]"
         data-name="Rectangle"
       >
-        <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[18px]">
+        <div aria-hidden="true" className="absolute inset-0 pointer-events-none select-none rounded-[18px] [-webkit-touch-callout:none] [-webkit-user-drag:none]">
           {isVideo ? (
             <video
               ref={p.storyVideoRef}
               key={src}
-              className="absolute max-w-none object-cover rounded-[18px] size-full"
+              className="absolute max-w-none object-cover select-none rounded-[18px] size-full [-webkit-touch-callout:none]"
               src={src}
               muted
               playsInline
+              disablePictureInPicture
+              controls={false}
               autoPlay
               onLoadedMetadata={(e) => {
                 const d = e.currentTarget.duration
@@ -297,7 +312,8 @@ function Story(p: InstagramStoryViewProps) {
             <img
               alt=""
               key={src}
-              className="absolute max-w-none object-cover rounded-[18px] size-full"
+              draggable={false}
+              className="absolute max-w-none object-cover select-none rounded-[18px] size-full [-webkit-touch-callout:none] [-webkit-user-drag:none]"
               src={src}
             />
           )}
@@ -310,9 +326,14 @@ function Story(p: InstagramStoryViewProps) {
           />
         </div>
         <div
-          className="absolute left-0 right-0 z-[2] rounded-[18px] touch-manipulation"
+          ref={touchLayerRef}
+          className="absolute left-0 right-0 z-[2] touch-none rounded-[18px] select-none [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [-webkit-user-select:none]"
           style={{ top: '65.412px', bottom: '100px' }}
+          onContextMenu={(e) => e.preventDefault()}
           onPointerDown={(e) => {
+            if (e.pointerType === 'touch') {
+              e.preventDefault()
+            }
             if (e.currentTarget instanceof HTMLElement) {
               try {
                 e.currentTarget.setPointerCapture(e.pointerId);
@@ -385,9 +406,10 @@ function Icons() {
 function MessageBar({ onMessagePointerDown }: { onMessagePointerDown: InstagramStoryViewProps['onMessagePointerDown'] }) {
   return (
     <div
-      className="-translate-x-1/2 absolute bg-black bottom-[-0.28px] content-stretch flex gap-[18.291px] items-center justify-center left-[calc(50%-0.5px)] pb-[16px] pt-[14px] px-[16px] w-[390px] z-[5]"
+      className="-translate-x-1/2 absolute bg-black bottom-[-0.28px] content-stretch flex gap-[18.291px] items-center justify-center left-[calc(50%-0.5px)] pb-[16px] pt-[14px] px-[16px] w-[390px] z-[5] select-none [-webkit-touch-callout:none]"
       data-name="Message Bar"
       onPointerDown={onMessagePointerDown}
+      onContextMenu={(e) => e.preventDefault()}
     >
       <Message />
       <Icons />
@@ -570,7 +592,8 @@ function SeekTooltip({
         {useStripPreview ? (
           <img
             alt=""
-            className="pointer-events-none block h-full w-full rounded-[10px] object-cover"
+            draggable={false}
+            className="pointer-events-none block h-full w-full select-none rounded-[10px] object-cover [-webkit-touch-callout:none] [-webkit-user-drag:none]"
             src={stripUrls[stripFrameIndex] ?? ''}
           />
         ) : (
@@ -587,7 +610,7 @@ function SeekTooltip({
 
 export default function InstagramStory(props: InstagramStoryViewProps) {
   return (
-    <div className="relative h-full min-h-0 w-full bg-black" data-name="Instagram Story">
+    <div className="relative h-full min-h-0 w-full select-none bg-black [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none]" data-name="Instagram Story">
       <Story {...props} />
       <MessageBar onMessagePointerDown={props.onMessagePointerDown} />
     </div>

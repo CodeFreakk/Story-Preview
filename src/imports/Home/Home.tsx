@@ -609,7 +609,7 @@ function BottomNavContainer() {
 function BottomNav() {
   return (
     <div
-      className="relative z-10 flex w-full shrink-0 flex-col content-stretch items-center justify-center border-t border-solid border-[#ececec] bg-white pt-[20px] pb-[44px] px-[32px]"
+      className="fixed bottom-0 left-0 right-0 z-30 flex w-full shrink-0 flex-col content-stretch items-center justify-center border-t border-solid border-[#ececec] bg-white pt-[20px] pb-[max(44px,env(safe-area-inset-bottom,0px))] px-[32px] md:relative md:bottom-auto md:left-auto md:right-auto md:z-10 md:pb-[44px]"
       data-name="Bottom Nav"
     >
       <BottomNavContainer />
@@ -620,7 +620,8 @@ function BottomNav() {
 export default function Home() {
   return (
     <div className="relative flex min-h-0 w-full flex-1 flex-col bg-white" data-name="home">
-      <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain">
+      {/* Reserve space for fixed BottomNav on mobile (nav ~90px + safe area); md uses in-flow nav */}
+      <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain pb-[calc(96px+env(safe-area-inset-bottom,0px))] md:pb-0">
         <TopSection />
       </div>
       <BottomNav />

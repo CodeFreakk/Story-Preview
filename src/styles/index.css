@@ -6,3 +6,13 @@
 html {
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Story route: block native selection / drag / callout (Chrome + Safari); app handles gestures. */
+[data-story-gesture-root],
+[data-story-gesture-root] * {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
