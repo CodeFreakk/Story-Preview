@@ -7,8 +7,8 @@ import { getStoryPrefetchAssetUrls } from "./storyConfig";
 
 function PhoneFrame({ children }: { children: ReactNode }) {
   return (
-    <div className="box-border flex min-h-dvh w-full flex-col bg-white [-webkit-tap-highlight-color:transparent] md:items-center md:justify-center md:bg-gray-100 md:p-4">
-      <div className="relative flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-white [-webkit-tap-highlight-color:transparent] touch-manipulation md:h-[min(844px,100dvh)] md:w-[390px] md:max-w-full md:flex-none md:shadow-2xl">
+    <div className="box-border flex h-dvh max-h-dvh w-full flex-col overflow-hidden bg-white [-webkit-tap-highlight-color:transparent] md:h-auto md:max-h-none md:min-h-dvh md:overflow-visible md:items-center md:justify-center md:bg-gray-100 md:p-4">
+      <div className="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-white [-webkit-tap-highlight-color:transparent] touch-manipulation md:h-[min(844px,100dvh)] md:w-[390px] md:max-w-full md:flex-none md:shadow-2xl">
         {children}
       </div>
     </div>

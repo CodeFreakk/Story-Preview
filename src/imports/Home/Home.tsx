@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import svgPaths from "./svg-chh8fi0vxl";
 import { figmaHome } from "../../assets/figma";
@@ -677,30 +677,40 @@ export default function Home() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastScrollTopRef = useRef(0);
 
-  const handleScroll = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const currentScrollTop = el.scrollTop;
-    const scrollDelta = currentScrollTop - lastScrollTopRef.current;
-
-    lastScrollTopRef.current = currentScrollTop;
+  const updateNavFromScroll = useCallback((scrollTop: number) => {
+    const scrollDelta = scrollTop - lastScrollTopRef.current;
+    lastScrollTopRef.current = scrollTop;
 
     setNavHideOffsetPx((prev) => {
-      if (currentScrollTop <= 0) return 0;
+      if (scrollTop <= 0) return 0;
       return Math.min(BOTTOM_NAV_HEIGHT_PX, Math.max(0, prev + scrollDelta));
     });
   }, []);
 
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    updateNavFromScroll(el.scrollTop);
+  }, [updateNavFromScroll]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const onScroll = () => updateNavFromScroll(el.scrollTop);
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [updateNavFromScroll]);
+
   const scrollPaddingBottom = `calc(${BOTTOM_NAV_HEIGHT_PX - navHideOffsetPx}px + env(safe-area-inset-bottom, 0px))`;
 
   return (
-    <div className="relative flex min-h-0 w-full flex-1 flex-col bg-white" data-name="home">
+    <div className="relative flex h-full min-h-0 w-full flex-1 flex-col bg-white" data-name="home">
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        style={{ paddingBottom: scrollPaddingBottom }}
-        className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain"
+        style={{ paddingBottom: scrollPaddingBottom, WebkitOverflowScrolling: "touch" }}
+        className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain touch-pan-y"
       >
         <TopSection />
       </div>
