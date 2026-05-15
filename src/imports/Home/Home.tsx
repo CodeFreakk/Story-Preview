@@ -11,7 +11,8 @@ const imgInnerOval4 = figmaHome.innerOval4;
 const imgOval1 = figmaHome.oval1;
 
 const STORY_TAP_MOVE_PX = 14;
-const BOTTOM_NAV_SCROLL_THRESHOLD_PX = 8;
+/** Pixels the nav travels when fully hidden (matches reserved scroll padding). */
+const BOTTOM_NAV_HEIGHT_PX = 96;
 
 type FeedPost = {
   username: string;
@@ -654,15 +655,16 @@ function BottomNavContainer() {
   );
 }
 
-function BottomNav({ visible }: { visible: boolean }) {
+function BottomNav({ hideOffsetPx }: { hideOffsetPx: number }) {
+  const isFullyHidden = hideOffsetPx >= BOTTOM_NAV_HEIGHT_PX;
+
   return (
     <div
       data-name="Bottom Nav"
-      aria-hidden={!visible}
-      className={`absolute inset-x-0 bottom-0 z-30 flex w-full flex-col content-stretch items-center justify-center border-t border-solid border-[#ececec] bg-white pt-[20px] pb-[max(28px,env(safe-area-inset-bottom,0px))] px-[32px] transition-[transform,opacity] duration-300 ease-in-out will-change-transform ${
-        visible
-          ? "translate-y-0 opacity-100"
-          : "translate-y-full opacity-0 pointer-events-none"
+      aria-hidden={isFullyHidden}
+      style={{ transform: `translateY(${hideOffsetPx}px)` }}
+      className={`fixed inset-x-0 bottom-0 z-30 flex w-full flex-col content-stretch items-center justify-center border-t border-solid border-[#ececec] bg-white pt-[20px] pb-[max(28px,env(safe-area-inset-bottom,0px))] px-[32px] will-change-transform md:absolute ${
+        isFullyHidden ? "pointer-events-none" : ""
       }`}
     >
       <BottomNavContainer />
@@ -671,7 +673,7 @@ function BottomNav({ visible }: { visible: boolean }) {
 }
 
 export default function Home() {
-  const [isBottomNavVisible, setIsBottomNavVisible] = useState(true);
+  const [navHideOffsetPx, setNavHideOffsetPx] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastScrollTopRef = useRef(0);
 
@@ -682,30 +684,27 @@ export default function Home() {
     const currentScrollTop = el.scrollTop;
     const scrollDelta = currentScrollTop - lastScrollTopRef.current;
 
-    if (currentScrollTop <= 0) {
-      setIsBottomNavVisible(true);
-    } else if (scrollDelta > BOTTOM_NAV_SCROLL_THRESHOLD_PX) {
-      setIsBottomNavVisible(false);
-    } else if (scrollDelta < -BOTTOM_NAV_SCROLL_THRESHOLD_PX) {
-      setIsBottomNavVisible(true);
-    }
-
     lastScrollTopRef.current = currentScrollTop;
+
+    setNavHideOffsetPx((prev) => {
+      if (currentScrollTop <= 0) return 0;
+      return Math.min(BOTTOM_NAV_HEIGHT_PX, Math.max(0, prev + scrollDelta));
+    });
   }, []);
+
+  const scrollPaddingBottom = `calc(${BOTTOM_NAV_HEIGHT_PX - navHideOffsetPx}px + env(safe-area-inset-bottom, 0px))`;
 
   return (
     <div className="relative flex min-h-0 w-full flex-1 flex-col bg-white" data-name="home">
-      {/* Reserve space for fixed BottomNav on mobile (nav ~90px + safe area); md uses in-flow nav */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className={`min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain transition-[padding] duration-300 ease-in-out ${
-          isBottomNavVisible ? "pb-[calc(96px+env(safe-area-inset-bottom,0px))]" : "pb-0"
-        }`}
+        style={{ paddingBottom: scrollPaddingBottom }}
+        className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain"
       >
         <TopSection />
       </div>
-      <BottomNav visible={isBottomNavVisible} />
+      <BottomNav hideOffsetPx={navHideOffsetPx} />
     </div>
   );
 }
