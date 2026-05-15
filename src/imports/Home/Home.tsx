@@ -1,4 +1,4 @@
-import { useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import svgPaths from "./svg-chh8fi0vxl";
 import { figmaHome } from "../../assets/figma";
@@ -8,11 +8,55 @@ const imgInnerOval1 = figmaHome.innerOval1;
 const imgInnerOval2 = figmaHome.innerOval2;
 const imgInnerOval3 = figmaHome.innerOval3;
 const imgInnerOval4 = figmaHome.innerOval4;
-const imgOval = figmaHome.oval;
-const imgRectangle = figmaHome.postRectangle;
 const imgOval1 = figmaHome.oval1;
 
 const STORY_TAP_MOVE_PX = 14;
+const BOTTOM_NAV_SCROLL_THRESHOLD_PX = 8;
+
+type FeedPost = {
+  username: string;
+  avatar: string;
+  image: string;
+  location?: string;
+  verified?: boolean;
+  caption: string;
+  date: string;
+  showCarouselDots?: boolean;
+};
+
+const FEED_POSTS: FeedPost[] = [
+  {
+    username: "fredrick_g",
+    avatar: figmaHome.oval,
+    image: figmaHome.postRectangle,
+    location: "Tokyo, Japan",
+    verified: true,
+    caption: "The game in Japan was absolutely incredible and I had to share these photos",
+    date: "September 19",
+    showCarouselDots: true,
+  },
+  {
+    username: "colegreen",
+    avatar: figmaHome.innerOval1,
+    image: figmaHome.postColegreen,
+    caption: "Last night was one of those shows that will stay with me for days",
+    date: "September 18",
+  },
+  {
+    username: "rodek",
+    avatar: figmaHome.innerOval2,
+    image: figmaHome.postRodek,
+    caption: "Nothing beats a slow weekend morning with good coffee and nowhere to be",
+    date: "September 17",
+  },
+  {
+    username: "macronbi",
+    avatar: figmaHome.innerOval3,
+    image: figmaHome.postMacronbi,
+    caption: "Found this place by accident and already know I will be coming back soon",
+    date: "September 16",
+  },
+];
 
 function StoryNavCell({
   storyId,
@@ -322,31 +366,33 @@ function OfficialIcon() {
   );
 }
 
-function UserInfoTop() {
+function UserInfoTop({ username, verified }: Pick<FeedPost, "username" | "verified">) {
   return (
     <div className="content-stretch flex gap-[4px] items-center relative shrink-0 w-full" data-name="User Info Top">
-      <p className="font-sans font-medium leading-[18.72px] not-italic relative shrink-0 text-[#262626] text-[13.52px] tracking-[-0.104px] whitespace-nowrap">fredrick_g</p>
-      <OfficialIcon />
+      <p className="font-sans font-medium leading-[18.72px] not-italic relative shrink-0 text-[#262626] text-[13.52px] tracking-[-0.104px] whitespace-nowrap">{username}</p>
+      {verified ? <OfficialIcon /> : null}
     </div>
   );
 }
 
-function UserInfoContainer() {
+function UserInfoContainer({ username, location, verified }: Pick<FeedPost, "username" | "location" | "verified">) {
   return (
     <div className="content-stretch flex flex-col gap-px items-start relative shrink-0 w-[71.76px]" data-name="User Info Container">
-      <UserInfoTop />
-      <p className="font-sans font-normal leading-[normal] not-italic relative shrink-0 text-[#626262] text-[12px] tracking-[0.0728px] whitespace-nowrap">Tokyo, Japan</p>
+      <UserInfoTop username={username} verified={verified} />
+      {location ? (
+        <p className="font-sans font-normal leading-[normal] not-italic relative shrink-0 text-[#626262] text-[12px] tracking-[0.0728px] whitespace-nowrap">{location}</p>
+      ) : null}
     </div>
   );
 }
 
-function UserInfo() {
+function UserInfo({ avatar, username, location, verified }: Pick<FeedPost, "avatar" | "username" | "location" | "verified">) {
   return (
     <div className="content-stretch flex gap-[10px] items-center relative shrink-0" data-name="User Info">
       <div className="relative shrink-0 size-[33.28px]" data-name="Oval">
-        <img alt="" className="absolute block inset-0 max-w-none size-full" height="33.28" src={imgOval} width="33.28" />
+        <img alt="" className="absolute block inset-0 max-w-none size-full" height="33.28" src={avatar} width="33.28" />
       </div>
-      <UserInfoContainer />
+      <UserInfoContainer username={username} location={location} verified={verified} />
     </div>
   );
 }
@@ -363,20 +409,20 @@ function MoreIcon() {
   );
 }
 
-function PostHeaderContainer() {
+function PostHeaderContainer({ post }: { post: FeedPost }) {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-name="Post Header Container">
-      <UserInfo />
+      <UserInfo avatar={post.avatar} username={post.username} location={post.location} verified={post.verified} />
       <MoreIcon />
     </div>
   );
 }
 
-function PostHeader() {
+function PostHeader({ post }: { post: FeedPost }) {
   return (
     <div className="bg-white relative shrink-0 w-full" data-name="Post Header">
       <div className="content-stretch flex flex-col items-start pb-[14px] pt-[16px] px-[16px] relative size-full">
-        <PostHeaderContainer />
+        <PostHeaderContainer post={post} />
       </div>
     </div>
   );
@@ -468,48 +514,48 @@ function Bookmark() {
   );
 }
 
-function Icons() {
+function Icons({ showCarouselDots }: { showCarouselDots?: boolean }) {
   return (
     <div className="content-stretch flex items-center justify-between pb-[4px] relative shrink-0 w-full" data-name="Icons">
       <IconContainer />
-      <Pagination />
+      {showCarouselDots ? <Pagination /> : <div className="h-[6.24px] w-[27.041px] shrink-0" aria-hidden />}
       <Bookmark />
     </div>
   );
 }
 
-function BottomInfos() {
+function BottomInfos({ post }: { post: FeedPost }) {
   return (
     <div className="bg-white relative shrink-0 w-full" data-name="Bottom Infos">
       <div className="content-stretch flex flex-col gap-[10px] items-start pt-[12px] px-[16px] relative size-full">
-        <Icons />
+        <Icons showCarouselDots={post.showCarouselDots} />
         <p className="font-sans font-semibold leading-[0] not-italic relative shrink-0 text-[#262626] text-[13.52px] tracking-[-0.104px] w-[358.8px]">
-          <span className="font-medium leading-[18.72px]">fredrick_g</span>
+          <span className="font-medium leading-[18.72px]">{post.username}</span>
           <span className="font-medium leading-[18.72px]">{` `}</span>
-          <span className="font-normal leading-[18.72px] text-[#595959] tracking-[-0.0728px]">The game in Japan was amazing and I want to share some photos</span>
+          <span className="font-normal leading-[18.72px] text-[#595959] tracking-[-0.0728px]">{post.caption}</span>
         </p>
-        <p className="font-sans font-normal leading-[normal] not-italic relative shrink-0 text-[13px] text-[rgba(0,0,0,0.4)] tracking-[0.1px] whitespace-nowrap">September 19</p>
+        <p className="font-sans font-normal leading-[normal] not-italic relative shrink-0 text-[13px] text-[rgba(0,0,0,0.4)] tracking-[0.1px] whitespace-nowrap">{post.date}</p>
       </div>
     </div>
   );
 }
 
-function Post() {
+function Post({ post }: { post: FeedPost }) {
   return (
     <div className="content-stretch flex flex-col items-start relative shrink-0 w-full" data-name="post">
       <div className="h-[390px] relative shrink-0 w-full" data-name="Rectangle">
-        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgRectangle} />
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={post.image} />
       </div>
-      <BottomInfos />
+      <BottomInfos post={post} />
     </div>
   );
 }
 
-function PostSection() {
+function PostSection({ post }: { post: FeedPost }) {
   return (
     <div className="content-stretch flex flex-col items-start relative shrink-0 w-full" data-name="Post Section">
-      <PostHeader />
-      <Post />
+      <PostHeader post={post} />
+      <Post post={post} />
     </div>
   );
 }
@@ -518,7 +564,9 @@ function StoriesSection() {
   return (
     <div className="content-stretch flex min-w-0 w-full flex-col items-start relative shrink-0" data-name="Stories Section">
       <StoriesContainer />
-      <PostSection />
+      {FEED_POSTS.map((post) => (
+        <PostSection key={post.username} post={post} />
+      ))}
     </div>
   );
 }
@@ -606,11 +654,16 @@ function BottomNavContainer() {
   );
 }
 
-function BottomNav() {
+function BottomNav({ visible }: { visible: boolean }) {
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-30 flex w-full shrink-0 flex-col content-stretch items-center justify-center border-t border-solid border-[#ececec] bg-white pt-[20px] pb-[max(28px,env(safe-area-inset-bottom,0px))] px-[32px] md:relative md:bottom-auto md:left-auto md:right-auto md:z-10 md:pb-[44px]"
       data-name="Bottom Nav"
+      aria-hidden={!visible}
+      className={`absolute inset-x-0 bottom-0 z-30 flex w-full flex-col content-stretch items-center justify-center border-t border-solid border-[#ececec] bg-white pt-[20px] pb-[max(28px,env(safe-area-inset-bottom,0px))] px-[32px] transition-[transform,opacity] duration-300 ease-in-out will-change-transform ${
+        visible
+          ? "translate-y-0 opacity-100"
+          : "translate-y-full opacity-0 pointer-events-none"
+      }`}
     >
       <BottomNavContainer />
     </div>
@@ -618,13 +671,41 @@ function BottomNav() {
 }
 
 export default function Home() {
+  const [isBottomNavVisible, setIsBottomNavVisible] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const lastScrollTopRef = useRef(0);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const currentScrollTop = el.scrollTop;
+    const scrollDelta = currentScrollTop - lastScrollTopRef.current;
+
+    if (currentScrollTop <= 0) {
+      setIsBottomNavVisible(true);
+    } else if (scrollDelta > BOTTOM_NAV_SCROLL_THRESHOLD_PX) {
+      setIsBottomNavVisible(false);
+    } else if (scrollDelta < -BOTTOM_NAV_SCROLL_THRESHOLD_PX) {
+      setIsBottomNavVisible(true);
+    }
+
+    lastScrollTopRef.current = currentScrollTop;
+  }, []);
+
   return (
     <div className="relative flex min-h-0 w-full flex-1 flex-col bg-white" data-name="home">
       {/* Reserve space for fixed BottomNav on mobile (nav ~90px + safe area); md uses in-flow nav */}
-      <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain pb-[calc(96px+env(safe-area-inset-bottom,0px))] md:pb-0">
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className={`min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain transition-[padding] duration-300 ease-in-out ${
+          isBottomNavVisible ? "pb-[calc(96px+env(safe-area-inset-bottom,0px))]" : "pb-0"
+        }`}
+      >
         <TopSection />
       </div>
-      <BottomNav />
+      <BottomNav visible={isBottomNavVisible} />
     </div>
   );
 }

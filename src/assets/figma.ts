@@ -11,5 +11,8 @@ export const figmaHome = {
   innerOval4: `${images}/selena.png`,
   oval: `${images}/fredrick_g.png`,
   postRectangle: `${images}/tokyoPost.png`,
+  postColegreen: `${images}/colegreen_story.jpg`,
+  postRodek: `${images}/rodek_story_image2.jpg`,
+  postMacronbi: `${images}/macronbi_story.jpg`,
   oval1: `${images}/${encodeURIComponent("tabMenu avatat.png")}`,
 } as const;
